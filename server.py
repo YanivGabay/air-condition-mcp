@@ -40,6 +40,21 @@ SWITCHBOT_TOKEN = os.getenv("SWITCHBOT_TOKEN", "")
 SWITCHBOT_SECRET = os.getenv("SWITCHBOT_SECRET", "")
 AC_DEVICE_ID = os.getenv("SWITCHBOT_AC_DEVICE_ID", "")
 
+# Debug: Log environment variable status (without exposing values)
+import sys
+if not SWITCHBOT_TOKEN:
+    print("⚠️ WARNING: SWITCHBOT_TOKEN is empty!", file=sys.stderr)
+if not SWITCHBOT_SECRET:
+    print("⚠️ WARNING: SWITCHBOT_SECRET is empty!", file=sys.stderr)
+if not AC_DEVICE_ID:
+    print("⚠️ WARNING: SWITCHBOT_AC_DEVICE_ID is empty!", file=sys.stderr)
+
+if SWITCHBOT_TOKEN and SWITCHBOT_SECRET and AC_DEVICE_ID:
+    print(f"✅ Environment variables loaded successfully", file=sys.stderr)
+    print(f"   Token length: {len(SWITCHBOT_TOKEN)}", file=sys.stderr)
+    print(f"   Secret length: {len(SWITCHBOT_SECRET)}", file=sys.stderr)
+    print(f"   Device ID: {AC_DEVICE_ID}", file=sys.stderr)
+
 # SwitchBot API base URL
 API_BASE = "https://api.switch-bot.com/v1.1"
 
@@ -103,6 +118,52 @@ async def make_switchbot_request(
     
     response.raise_for_status()
     return response.json()
+
+
+@mcp.tool()
+async def check_credentials() -> str:
+    """
+    Check if SwitchBot credentials are configured and valid.
+    
+    Returns:
+        String with credential status
+    """
+    output = "🔐 Credential Status Check:\n\n"
+    
+    if not SWITCHBOT_TOKEN:
+        output += "❌ SWITCHBOT_TOKEN: Not set\n"
+    else:
+        output += f"✅ SWITCHBOT_TOKEN: Set ({len(SWITCHBOT_TOKEN)} characters)\n"
+    
+    if not SWITCHBOT_SECRET:
+        output += "❌ SWITCHBOT_SECRET: Not set\n"
+    else:
+        output += f"✅ SWITCHBOT_SECRET: Set ({len(SWITCHBOT_SECRET)} characters)\n"
+    
+    if not AC_DEVICE_ID:
+        output += "❌ SWITCHBOT_AC_DEVICE_ID: Not set\n"
+    else:
+        output += f"✅ SWITCHBOT_AC_DEVICE_ID: Set ({AC_DEVICE_ID})\n"
+    
+    if not (SWITCHBOT_TOKEN and SWITCHBOT_SECRET):
+        output += "\n⚠️ Missing credentials! Cannot authenticate with SwitchBot API.\n"
+        output += "Please set environment variables in your hosting dashboard."
+        return output
+    
+    # Test authentication
+    output += "\n🧪 Testing API Authentication...\n"
+    try:
+        result = await make_switchbot_request("GET", "/devices")
+        if result.get("statusCode") == 100:
+            output += "✅ Authentication successful!\n"
+            output += "✅ API connection working\n"
+        else:
+            output += f"❌ Authentication failed: {result.get('message', 'Unknown error')}\n"
+            output += "Check that your token and secret are correct.\n"
+    except Exception as e:
+        output += f"❌ API request failed: {str(e)}\n"
+    
+    return output
 
 
 @mcp.tool()
