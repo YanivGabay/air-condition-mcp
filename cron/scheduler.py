@@ -37,7 +37,6 @@ with open(CONFIG_PATH) as f:
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
-SUPABASE_REFRESH_TOKEN = os.getenv("SUPABASE_REFRESH_TOKEN", "")
 
 # MCP Server config
 MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "https://myAirCondition.fastmcp.app/mcp")
