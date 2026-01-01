@@ -205,47 +205,42 @@ async def ask_ai_for_decision(context: dict) -> dict:
     rules = CONFIG["rules"]
     ai_notes = CONFIG.get("ai", {}).get("notes", "")
 
-    prompt = f"""You are an AI assistant controlling a home air conditioner at night while the user sleeps.
+    optimal_min = rules.get('optimal_min', 16)
+    optimal_max = rules.get('optimal_max', 20)
+    acceptable_max = rules.get('acceptable_max', 24)
+
+    prompt = f"""You are an AI controlling a home AC at night. User sleeps WITH A BLANKET.
 
 CURRENT CONDITIONS:
-- Room temperature: {context.get('room_temp', 'unknown')}°C
-- Room humidity: {context.get('room_humidity', 'unknown')}%
-- Outside temperature: {context.get('outside_temp', 'unknown')}°C
-- Outside feels like: {context.get('outside_feels_like', 'unknown')}°C
+- Room: {context.get('room_temp', 'unknown')}°C, {context.get('room_humidity', 'unknown')}% humidity
+- Outside: {context.get('outside_temp', 'unknown')}°C (feels like {context.get('outside_feels_like', 'unknown')}°C)
 - Weather: {context.get('weather_desc', 'unknown')}
-- Current time: {context.get('current_time', 'unknown')}
+- Time: {context.get('current_time', 'unknown')}
 
 AC STATUS:
 - Power: {context.get('ac_power', 'unknown')}
-- Set temperature: {context.get('ac_temp', 'unknown')}°C
+- Temperature: {context.get('ac_temp', 'unknown')}°C
 - Mode: {context.get('ac_mode', 'unknown')}
-- Fan speed: {context.get('ac_fan', 'unknown')}
 
-RULES:
-- Min temperature setting: {rules['min_temperature']}°C
-- Max temperature setting: {rules['max_temperature']}°C
-- Target comfort temperature: {rules['target_temperature']}°C
-- Turn off AC if outside below: {rules['turn_off_when_outside_below']}°C
-- Turn off AC if room below: {rules['turn_off_when_room_below']}°C
-- Preferred mode: {rules.get('preferred_mode', 'cool')}
+SLEEP SCIENCE (user sleeps with blanket):
+- OPTIMAL: {optimal_min}-{optimal_max}°C (cool room + blanket = best sleep)
+- ACCEPTABLE: {optimal_max}-{acceptable_max}°C (comfortable, no AC needed)
+- TOO HOT: >{acceptable_max}°C (need cooling)
+- TOO COLD: <{optimal_min}°C (need heating)
 
-USER NOTES:
+DECISION LOGIC:
+1. Room {optimal_min}-{acceptable_max}°C → "none" or "turn_off" (comfortable range)
+2. Room >{acceptable_max}°C → COOL mode (too hot)
+3. Room <{optimal_min}°C → HEAT mode (too cold)
+4. If AC is ON but room is comfortable → "turn_off" (save energy)
+5. If outside is cold and room is fine → "turn_off" (natural cooling works)
+
 {ai_notes}
 
-RECENT HISTORY:
-{json.dumps(context.get('history', [])[:3], indent=2)}
+HISTORY: {json.dumps(context.get('history', [])[:2], indent=2)}
 
-Based on this information, decide what action to take. You must respond with ONLY a JSON object (no markdown, no explanation):
-
-{{
-  "action": "none" | "turn_on" | "turn_off" | "adjust_temp" | "change_mode",
-  "temperature": <number 16-30 or null>,
-  "mode": "cool" | "heat" | "auto" | "fan" | "dry" | null,
-  "fan_speed": "auto" | "low" | "medium" | "high" | null,
-  "reasoning": "<brief explanation>"
-}}
-
-If no change is needed, use action "none". Be conservative - only make changes when clearly beneficial for sleep comfort."""
+Respond with ONLY JSON:
+{{"action": "none"|"turn_on"|"turn_off"|"adjust_temp"|"change_mode", "temperature": <number or null>, "mode": "cool"|"heat"|"auto"|"fan"|"dry"|null, "fan_speed": "auto"|"low"|"medium"|"high"|null, "reasoning": "<brief>"}}"""
 
     try:
         async with httpx.AsyncClient() as client:

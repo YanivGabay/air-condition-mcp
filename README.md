@@ -16,6 +16,48 @@ Control your air conditioner through SwitchBot Hub 2 using the Model Context Pro
 - 📊 **Room Monitoring**: Get current temperature and humidity from Hub 2
 - 🔍 **Device Discovery**: List all infrared devices
 
+## Night Automation
+
+This project includes an automated night-time AC control system that runs via GitHub Actions. It uses AI to make smart decisions based on:
+
+- Current room temperature & humidity
+- Outside weather conditions
+- Sleep science research
+- Your personal preferences
+
+### Sleep Science Research
+
+The automation is based on peer-reviewed sleep research:
+
+| Temperature Range | With Blanket | Without Cover |
+|-------------------|--------------|---------------|
+| 16-18°C (60-65°F) | Optimal | Too cold |
+| 18-20°C (65-68°F) | Excellent | Cool |
+| 20-24°C (68-75°F) | Warm (light sheet) | Comfortable |
+| >24°C (>75°F) | Too hot | Too hot |
+
+**Key Findings:**
+- The [Sleep Foundation](https://www.sleepfoundation.org/bedroom-environment/best-temperature-for-sleep) recommends **18.3°C (65°F)** as the ideal sleep temperature
+- [Cleveland Clinic](https://health.clevelandclinic.org/what-is-the-ideal-sleeping-temperature-for-my-bedroom) suggests **15-19°C (60-67°F)** for optimal sleep
+- Research shows sleeping with a blanket in a cool room (16-18°C) creates the best "microclimate" for deep sleep
+- A room that is too hot causes more sleep disturbance than one that is too cold
+
+**Sources:**
+- Sleep Foundation: [Best Temperature for Sleep](https://www.sleepfoundation.org/bedroom-environment/best-temperature-for-sleep)
+- Healthline: [Best Temperature to Sleep](https://www.healthline.com/health/sleep/best-temperature-to-sleep)
+- Cleveland Clinic: [Ideal Sleeping Temperature](https://health.clevelandclinic.org/what-is-the-ideal-sleeping-temperature-for-my-bedroom)
+- Medical News Today: [Best AC Temperature for Sleeping](https://www.medicalnewstoday.com/articles/what-is-the-best-ac-temperature-for-sleeping)
+
+### How It Works
+
+1. **Cron runs hourly** (22:00-07:00 Israel time)
+2. **Gathers data**: room temp, humidity, outside weather
+3. **AI decides**: based on sleep science + your preferences
+4. **Executes action**: via MCP server on FastMCP Cloud
+5. **Logs to Supabase**: for history and learning
+
+See [`cron/config.yaml`](cron/config.yaml) to customize your preferences.
+
 ## Quick Start
 
 ### Prerequisites

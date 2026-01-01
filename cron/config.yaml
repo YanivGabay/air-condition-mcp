@@ -13,20 +13,33 @@ schedule:
   end_hour: 7     # 7 AM
 
 rules:
-  # Temperature boundaries
-  min_temperature: 18    # Never set AC below this
-  max_temperature: 32    # Never set AC above this
+  # AC setting limits
+  min_ac_setting: 18
+  max_ac_setting: 30
 
-  # Comfort preferences
-  target_temperature: 23  # Ideal sleeping temperature
+  # Sleep science based ranges (with blanket)
+  optimal_min: 16  # Below this = too cold even with blanket
+  optimal_max: 20  # Above this = might be too warm with blanket
 
-  # Auto-off conditions
-  turn_off_when_outside_below: 18  # Turn off AC if outside is cool enough
-  turn_off_when_room_below: 20     # Turn off if room is already cool
+  # Acceptable range (light sheet or no cover)
+  acceptable_min: 20
+  acceptable_max: 24
 
 # AI decision making
 ai:
-  # Add any context for the AI to consider
   notes: |
-    - I prefer it slightly cool when sleeping
-    - I usually wake up around 06:30
+    USER SLEEP STYLE:
+    - I sleep WITH a blanket/cover
+    - Optimal room temp for blanket sleeping: 16-20°C
+    - I wake up around 06:30
+
+    DECISION RULES:
+    - If room > 24°C: Too hot, need cooling
+    - If room 20-24°C: Comfortable, probably no AC needed
+    - If room 16-20°C: Optimal for blanket sleeping
+    - If room < 16°C: Too cold, might need heating
+
+    ENERGY SAVING:
+    - If outside is cold and room is comfortable, turn AC OFF
+    - Prefer "none" action when room is in acceptable range
+    - Only use AC when truly needed

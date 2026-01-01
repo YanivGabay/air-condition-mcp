@@ -30,6 +30,9 @@ env/
 ENV/
 .venv
 
+# Claude Code (keep skills, ignore local settings)
+.claude/settings.local.json
+
 # IDE
 .vscode/
 .idea/
