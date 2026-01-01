@@ -12,7 +12,7 @@ Setup:
 """
 
 from fastmcp import FastMCP
-from fastmcp.server.auth import BearerAuthProvider
+from fastmcp.server.dependencies import get_http_headers
 import httpx
 import hashlib
 import hmac
@@ -33,16 +33,25 @@ except ImportError:
     # python-dotenv not installed, will use environment variables
     pass
 
-# Initialize MCP server with Supabase JWT auth
-SUPABASE_PROJECT_REF = os.getenv("SUPABASE_PROJECT_REF", "mvoxckiqssdxwfpszsqq")
+# API Key for authentication (set in FastMCP Cloud secrets)
+API_KEY = os.getenv("MCP_API_KEY", "")
 
-auth_provider = BearerAuthProvider(
-    jwks_uri=f"https://{SUPABASE_PROJECT_REF}.supabase.co/auth/v1/.well-known/jwks.json",
-    issuer=f"https://{SUPABASE_PROJECT_REF}.supabase.co/auth/v1",
-    audience="authenticated",
-)
+def verify_api_key() -> bool:
+    """Verify the API key from request headers."""
+    if not API_KEY:
+        # No API key configured, allow all requests (for local dev)
+        return True
+    headers = get_http_headers()
+    provided_key = headers.get("x-api-key") or headers.get("authorization", "").replace("Bearer ", "")
+    return provided_key == API_KEY
 
-mcp = FastMCP("SwitchBot AC Controller", auth=auth_provider)
+def require_auth():
+    """Raise error if API key is invalid."""
+    if not verify_api_key():
+        raise ValueError("Invalid or missing API key. Provide X-API-Key header.")
+
+# Initialize MCP server (no built-in auth, we handle it ourselves)
+mcp = FastMCP("SwitchBot AC Controller")
 
 # Configuration - Loaded from .env file or environment variables
 SWITCHBOT_TOKEN = os.getenv("SWITCHBOT_TOKEN", "")
@@ -133,10 +142,11 @@ async def make_switchbot_request(
 async def check_credentials() -> str:
     """
     Check if SwitchBot credentials are configured and valid.
-    
+
     Returns:
         String with credential status
     """
+    require_auth()
     output = "🔐 Credential Status Check:\n\n"
     
     if not SWITCHBOT_TOKEN:
@@ -180,10 +190,11 @@ async def get_ac_devices() -> str:
     """
     List all infrared devices (including AC remotes) registered with SwitchBot Hub 2.
     Use this to find your AC device ID if you don't know it yet.
-    
+
     Returns:
         String with list of devices and their IDs
     """
+    require_auth()
     try:
         result = await make_switchbot_request("GET", "/devices")
         
@@ -225,6 +236,7 @@ async def get_ac_status() -> str:
     Returns:
         String with current AC status including power, temperature, mode, and fan speed
     """
+    require_auth()
     try:
         result = await make_switchbot_request("GET", f"/devices/{AC_DEVICE_ID}/status")
         
@@ -263,10 +275,11 @@ async def turn_ac_on(
         temperature: Target temperature in Celsius (typically 16-30)
         mode: Operating mode - 'auto', 'cool', 'dry', 'fan', or 'heat'
         fan_speed: Fan speed - 'auto', 'low', 'medium', or 'high'
-    
+
     Returns:
         Status message indicating success or failure
     """
+    require_auth()
     try:
         # Validate temperature range
         if not 16 <= temperature <= 30:
@@ -297,10 +310,11 @@ async def turn_ac_on(
 async def turn_ac_off() -> str:
     """
     Turn off the air conditioner.
-    
+
     Returns:
         Status message indicating success or failure
     """
+    require_auth()
     try:
         command_data = {
             "command": "turnOff",
@@ -332,15 +346,16 @@ async def set_ac_temperature(temperature: int) -> str:
     
     Args:
         temperature: Target temperature in Celsius (typically 16-30)
-    
+
     Returns:
         Status message indicating success or failure
     """
+    require_auth()
     try:
         # Validate temperature range
         if not 16 <= temperature <= 30:
             return "Error: Temperature must be between 16 and 30 degrees Celsius"
-        
+
         # First get current status to maintain other settings
         status_result = await make_switchbot_request("GET", f"/devices/{AC_DEVICE_ID}/status")
         
@@ -383,21 +398,22 @@ async def set_ac_mode(
     
     Args:
         mode: Operating mode - 'auto', 'cool', 'dry', 'fan', or 'heat'
-    
+
     Returns:
         Status message indicating success or failure
     """
+    require_auth()
     try:
         # First get current status to maintain other settings
         status_result = await make_switchbot_request("GET", f"/devices/{AC_DEVICE_ID}/status")
-        
+
         if status_result.get("statusCode") != 100:
             return f"Error: {status_result.get('message', 'Unable to get current status')}"
-        
+
         body = status_result.get("body", {})
         current_temp = body.get("temperature", 24)
         current_fan = body.get("fanSpeed", "auto")
-        
+
         command_data = {
             "command": "setAll",
             "parameter": f"{current_temp},{mode},{current_fan},on",
@@ -430,21 +446,22 @@ async def set_ac_fan_speed(
     
     Args:
         fan_speed: Fan speed - 'auto', 'low', 'medium', or 'high'
-    
+
     Returns:
         Status message indicating success or failure
     """
+    require_auth()
     try:
         # First get current status to maintain other settings
         status_result = await make_switchbot_request("GET", f"/devices/{AC_DEVICE_ID}/status")
-        
+
         if status_result.get("statusCode") != 100:
             return f"Error: {status_result.get('message', 'Unable to get current status')}"
-        
+
         body = status_result.get("body", {})
         current_temp = body.get("temperature", 24)
         current_mode = body.get("mode", "cool")
-        
+
         command_data = {
             "command": "setAll",
             "parameter": f"{current_temp},{current_mode},{fan_speed},on",
@@ -483,10 +500,11 @@ async def set_ac_all_settings(
         temperature: Target temperature in Celsius (16-30, only used when power is 'on')
         mode: Operating mode - 'auto', 'cool', 'dry', 'fan', or 'heat'
         fan_speed: Fan speed - 'auto', 'low', 'medium', or 'high'
-    
+
     Returns:
         Status message indicating success or failure
     """
+    require_auth()
     try:
         if power == "off":
             return await turn_ac_off()
@@ -554,6 +572,7 @@ async def send_custom_ac_command(
         - send_custom_ac_command("sleep", "default") - Activate sleep mode
         - send_custom_ac_command("turbo", "default") - Activate turbo mode
     """
+    require_auth()
     try:
         command_data = {
             "command": command,
@@ -586,6 +605,7 @@ async def list_common_ac_commands() -> str:
     Returns:
         String with list of common AC commands and their descriptions
     """
+    require_auth()
     output = "🎮 Common AC Commands Beyond Standard Controls:\n\n"
     output += "Standard Commands (already available as dedicated tools):\n"
     output += "  • turnOn - Power on the AC\n"
@@ -636,6 +656,7 @@ async def get_room_temperature() -> str:
     Returns:
         String with current temperature (°C) and humidity (%)
     """
+    require_auth()
     try:
         # Get the Hub device ID from the infrared device list
         devices_result = await make_switchbot_request("GET", "/devices")

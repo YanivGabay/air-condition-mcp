@@ -51,9 +51,9 @@ jobs:
           # Supabase for logging + JWT auth
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_REFRESH_TOKEN: ${{ secrets.SUPABASE_REFRESH_TOKEN }}
-          # MCP Server URL
+          # MCP Server
           MCP_SERVER_URL: ${{ secrets.MCP_SERVER_URL }}
+          MCP_API_KEY: ${{ secrets.MCP_API_KEY }}
         run: |
           cd cron
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then

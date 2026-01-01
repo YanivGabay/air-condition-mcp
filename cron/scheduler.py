@@ -41,41 +41,17 @@ SUPABASE_REFRESH_TOKEN = os.getenv("SUPABASE_REFRESH_TOKEN", "")
 
 # MCP Server config
 MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "https://myAirCondition.fastmcp.app/mcp")
+MCP_API_KEY = os.getenv("MCP_API_KEY", "")
 
 # OpenRouter config
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
 
 
-async def get_access_token() -> str | None:
-    """Get a fresh access token using the refresh token."""
-    if not SUPABASE_REFRESH_TOKEN:
-        print("  Warning: SUPABASE_REFRESH_TOKEN not set")
-        return None
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{SUPABASE_URL}/auth/v1/token?grant_type=refresh_token",
-            json={"refresh_token": SUPABASE_REFRESH_TOKEN},
-            headers={
-                "apikey": SUPABASE_ANON_KEY,
-                "Content-Type": "application/json",
-            },
-        )
-
-        if response.status_code == 200:
-            data = response.json()
-            return data.get("access_token")
-        else:
-            print(f"  Error refreshing token: {response.json()}")
-            return None
-
-
-async def get_mcp_client() -> Client:
-    """Create an MCP client with fresh Supabase JWT auth."""
-    access_token = await get_access_token()
-    if not access_token:
-        raise RuntimeError("Failed to get access token for MCP authentication")
-    return Client(MCP_SERVER_URL, auth=access_token)
+def get_mcp_client() -> Client:
+    """Create an MCP client with API key auth."""
+    if not MCP_API_KEY:
+        raise RuntimeError("MCP_API_KEY not set")
+    return Client(MCP_SERVER_URL, headers={"X-API-Key": MCP_API_KEY})
 
 
 async def get_room_conditions(mcp_client: Client) -> dict:
@@ -404,7 +380,7 @@ async def main():
 
     # Connect to MCP server
     print("\n[0/5] Connecting to MCP server...")
-    mcp_client = await get_mcp_client()
+    mcp_client = get_mcp_client()
 
     async with mcp_client:
         print(f"  Connected to {MCP_SERVER_URL}")
