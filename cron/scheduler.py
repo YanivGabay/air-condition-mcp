@@ -67,8 +67,7 @@ async def get_room_conditions(mcp_client: Client) -> dict:
     """Get current room temperature and humidity from SwitchBot Hub 2."""
     try:
         result = await mcp_client.call_tool("get_room_temperature", {})
-        # Parse the result - it returns a formatted string
-        text = str(result)
+        text = result.data if hasattr(result, 'data') else str(result)
         # Extract temperature and humidity from the response
         temp_match = text.find("Temperature:")
         humid_match = text.find("Humidity:")
@@ -87,8 +86,7 @@ async def get_ac_status(mcp_client: Client) -> dict:
     """Get current AC status."""
     try:
         result = await mcp_client.call_tool("get_ac_status", {})
-        # Parse the result - it returns a formatted string
-        text = str(result)
+        text = result.data if hasattr(result, 'data') else str(result)
         status = {
             "power": "off",
             "temperature": None,
@@ -343,7 +341,7 @@ async def execute_action(mcp_client: Client, decision: dict, dry_run: bool = Fal
             return {"executed": False, "reason": f"Unknown action: {action}"}
 
         # Check if result contains success indicator
-        result_str = str(result)
+        result_str = result.data if hasattr(result, 'data') else str(result)
         if "✓" in result_str or "success" in result_str.lower():
             return {"executed": True, "result": result_str}
         else:
