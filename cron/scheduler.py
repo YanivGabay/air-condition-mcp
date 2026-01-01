@@ -362,6 +362,17 @@ def is_within_schedule() -> bool:
         return start <= hour < end
 
 
+def is_final_run() -> bool:
+    """Check if this is the last cron run before wake up (1 hour before end)."""
+    tz = ZoneInfo(CONFIG["location"]["timezone"])
+    now = datetime.now(tz)
+    hour = now.hour
+    end = CONFIG["schedule"]["end_hour"]
+
+    # Final run is the hour before end_hour (e.g., 6:00 if end is 7:00)
+    return hour == end - 1
+
+
 async def main():
     parser = argparse.ArgumentParser(description="AC Night Automation")
     parser.add_argument("--dry-run", action="store_true", help="Test without making changes")
@@ -419,8 +430,17 @@ async def main():
             "history": history,
         }
 
-        print("\n[5/5] Asking AI for decision...")
-        decision = await ask_ai_for_decision(context)
+        # Check if final run - force turn off before wake up
+        if is_final_run():
+            print("\n[5/5] Final run of the night - turning off AC...")
+            decision = {
+                "action": "turn_off",
+                "reasoning": "Final cron run before wake up - shutting down AC"
+            }
+        else:
+            print("\n[5/5] Asking AI for decision...")
+            decision = await ask_ai_for_decision(context)
+
         print(f"  Action: {decision.get('action', 'none')}")
         if decision.get('temperature'):
             print(f"  Temperature: {decision.get('temperature')}°C")
