@@ -1,0 +1,32 @@
+# Air Condition Automation Config
+# ================================
+
+location:
+  city: Modiin
+  lat: 31.8928
+  lon: 35.0104
+  timezone: Asia/Jerusalem
+
+schedule:
+  # Night hours when automation runs (24h format)
+  start_hour: 22  # 10 PM
+  end_hour: 7     # 7 AM
+
+rules:
+  # Temperature boundaries
+  min_temperature: 18    # Never set AC below this
+  max_temperature: 32    # Never set AC above this
+
+  # Comfort preferences
+  target_temperature: 23  # Ideal sleeping temperature
+
+  # Auto-off conditions
+  turn_off_when_outside_below: 18  # Turn off AC if outside is cool enough
+  turn_off_when_room_below: 20     # Turn off if room is already cool
+
+# AI decision making
+ai:
+  # Add any context for the AI to consider
+  notes: |
+    - I prefer it slightly cool when sleeping
+    - I usually wake up around 06:30

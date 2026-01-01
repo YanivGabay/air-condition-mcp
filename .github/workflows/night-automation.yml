@@ -1,0 +1,65 @@
+name: AC Night Automation
+
+on:
+  # Run every hour from 22:00 to 06:00 Israel time (UTC+2/+3)
+  # Israel is UTC+2 in winter, UTC+3 in summer (DST)
+  # 22:00 Israel = 20:00 UTC (winter) or 19:00 UTC (summer)
+  # Using a range that covers both: 19:00-05:00 UTC
+  schedule:
+    - cron: '0 19-23,0-5 * * *'  # Every hour from 19:00-05:00 UTC
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without making changes'
+        required: false
+        default: 'false'
+        type: boolean
+      force:
+        description: 'Run even outside scheduled hours'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  adjust-ac:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install httpx pyyaml python-dotenv fastmcp
+
+      - name: Run AC automation
+        env:
+          # SwitchBot credentials
+          SWITCHBOT_TOKEN: ${{ secrets.SWITCHBOT_TOKEN }}
+          SWITCHBOT_SECRET: ${{ secrets.SWITCHBOT_SECRET }}
+          SWITCHBOT_AC_DEVICE_ID: ${{ secrets.SWITCHBOT_AC_DEVICE_ID }}
+          # OpenRouter for AI decisions
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL || 'google/gemma-3-4b-it' }}
+          # Supabase for logging + JWT auth
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_REFRESH_TOKEN: ${{ secrets.SUPABASE_REFRESH_TOKEN }}
+          # MCP Server URL
+          MCP_SERVER_URL: ${{ secrets.MCP_SERVER_URL }}
+        run: |
+          cd cron
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            python scheduler.py --dry-run --force
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python scheduler.py --force
+          else
+            python scheduler.py --force
+          fi

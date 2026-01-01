@@ -12,6 +12,7 @@ Setup:
 """
 
 from fastmcp import FastMCP
+from fastmcp.server.auth import BearerAuthProvider
 import httpx
 import hashlib
 import hmac
@@ -32,8 +33,16 @@ except ImportError:
     # python-dotenv not installed, will use environment variables
     pass
 
-# Initialize MCP server
-mcp = FastMCP("SwitchBot AC Controller")
+# Initialize MCP server with Supabase JWT auth
+SUPABASE_PROJECT_REF = os.getenv("SUPABASE_PROJECT_REF", "mvoxckiqssdxwfpszsqq")
+
+auth_provider = BearerAuthProvider(
+    jwks_uri=f"https://{SUPABASE_PROJECT_REF}.supabase.co/auth/v1/.well-known/jwks.json",
+    issuer=f"https://{SUPABASE_PROJECT_REF}.supabase.co/auth/v1",
+    audience="authenticated",
+)
+
+mcp = FastMCP("SwitchBot AC Controller", auth=auth_provider)
 
 # Configuration - Loaded from .env file or environment variables
 SWITCHBOT_TOKEN = os.getenv("SWITCHBOT_TOKEN", "")
