@@ -51,7 +51,16 @@ def get_mcp_client() -> Client:
     """Create an MCP client with API key auth."""
     if not MCP_API_KEY:
         raise RuntimeError("MCP_API_KEY not set")
-    return Client(MCP_SERVER_URL, headers={"X-API-Key": MCP_API_KEY})
+    config = {
+        "mcpServers": {
+            "ac": {
+                "transport": "http",
+                "url": MCP_SERVER_URL,
+                "headers": {"X-API-Key": MCP_API_KEY},
+            }
+        }
+    }
+    return Client(config)
 
 
 async def get_room_conditions(mcp_client: Client) -> dict:
