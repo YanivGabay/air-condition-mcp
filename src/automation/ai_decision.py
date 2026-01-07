@@ -38,18 +38,20 @@ AC STATUS:
 - Temperature: {context.get('ac_temp', 'unknown')}°C
 - Mode: {context.get('ac_mode', 'unknown')}
 
-SLEEP SCIENCE (user sleeps with blanket):
-- OPTIMAL: {optimal_min}-{optimal_max}°C (cool room + blanket = best sleep)
-- ACCEPTABLE: {optimal_max}-{acceptable_max}°C (comfortable, no AC needed)
-- TOO HOT: >{acceptable_max}°C (need cooling)
-- TOO COLD: <{optimal_min}°C (need heating)
+SLEEP SCIENCE (user sleeps with פוך/duvet):
+- OPTIMAL TARGET: {optimal_min}-{optimal_max}°C (research shows 18°C is ideal for deep sleep)
+- Room is currently {context.get('room_temp', 'unknown')}°C
 
-DECISION LOGIC:
-1. Room {optimal_min}-{acceptable_max}°C → "none" or "turn_off" (comfortable range)
-2. Room >{acceptable_max}°C → COOL mode (too hot)
-3. Room <{optimal_min}°C → HEAT mode (too cold)
-4. If AC is ON but room is comfortable → "turn_off" (save energy)
-5. If outside is cold and room is fine → "turn_off" (natural cooling works)
+CRITICAL TEMPERATURE CHECK:
+- Current room: {context.get('room_temp', 'unknown')}°C
+- Optimal max: {optimal_max}°C
+- Is room > {optimal_max}°C? If YES → MUST turn on cooling!
+
+DECISION LOGIC (follow strictly):
+1. Room > {optimal_max}°C (like now if room is {context.get('room_temp', 'unknown')}°C) → action="turn_on", mode="cool", temperature=18
+2. Room {optimal_min}-{optimal_max}°C → action="none" (already at target)
+3. Room < {optimal_min}°C → action="turn_on", mode="heat"
+4. If AC is ON and room is within {optimal_min}-{optimal_max}°C → action="turn_off"
 
 {ai_notes}
 

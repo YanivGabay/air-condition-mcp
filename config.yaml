@@ -29,17 +29,14 @@ rules:
 ai:
   notes: |
     USER SLEEP STYLE:
-    - I sleep WITH a blanket/cover
-    - Optimal room temp for blanket sleeping: 16-20°C
+    - I sleep WITH a פוך (duvet/blanket)
+    - Studies show 18°C is ideal for deep sleep with blanket
+    - Target room temp: 16-20°C
     - I wake up around 06:30
 
-    DECISION RULES:
-    - If room > 24°C: Too hot, need cooling
-    - If room 20-24°C: Comfortable, probably no AC needed
-    - If room 16-20°C: Optimal for blanket sleeping
-    - If room < 16°C: Too cold, might need heating
+    AGGRESSIVE COOLING RULES:
+    - If room > 20°C: ACTIVELY COOL to reach 16-20°C optimal range!
+    - If room 16-20°C: Perfect, no action needed
+    - If room < 16°C: Too cold, need heating
 
-    ENERGY SAVING:
-    - If outside is cold and room is comfortable, turn AC OFF
-    - Prefer "none" action when room is in acceptable range
-    - Only use AC when truly needed
+    IMPORTANT: Don't wait until room is >24°C to cool. Start cooling when above 20°C!
