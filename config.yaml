@@ -18,7 +18,7 @@ rules:
   max_ac_setting: 30
 
   # Sleep science based ranges (with blanket)
-  optimal_min: 16  # Below this = too cold even with blanket
+  optimal_min: 18  # Below this = too cold even with blanket
   optimal_max: 20  # Above this = might be too warm with blanket
 
   # Acceptable range (light sheet or no cover)
@@ -31,12 +31,12 @@ ai:
     USER SLEEP STYLE:
     - I sleep WITH a פוך (duvet/blanket)
     - Studies show 18°C is ideal for deep sleep with blanket
-    - Target room temp: 16-20°C
+    - Target room temp: 18-20°C
     - I wake up around 06:30
 
     AGGRESSIVE COOLING RULES:
-    - If room > 20°C: ACTIVELY COOL to reach 16-20°C optimal range!
-    - If room 16-20°C: Perfect, no action needed
-    - If room < 16°C: Too cold, need heating
+    - If room > 20°C: ACTIVELY COOL to reach 18-20°C optimal range!
+    - If room 18-20°C: Perfect, no action needed
+    - If room < 18°C: Too cold, need heating
 
     IMPORTANT: Don't wait until room is >24°C to cool. Start cooling when above 20°C!
