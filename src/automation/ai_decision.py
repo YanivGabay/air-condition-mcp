@@ -20,38 +20,33 @@ async def ask_ai_for_decision(
 
     rules = config.get("rules", {})
     ai_notes = config.get("ai", {}).get("notes", "")
+    room_layout = config.get("room", {}).get("layout", "")
 
-    optimal_min = rules.get("optimal_min", 16)
-    optimal_max = rules.get("optimal_max", 20)
-    acceptable_max = rules.get("acceptable_max", 24)
+    # Get current month for season context
+    from datetime import datetime
+    current_month = datetime.now().month
+    season = "winter" if current_month in [12, 1, 2] else "spring" if current_month in [3, 4, 5] else "summer" if current_month in [6, 7, 8] else "autumn"
 
-    prompt = f"""You are an AI controlling a home AC at night. User sleeps WITH A BLANKET.
+    prompt = f"""You control a bedroom AC. Decide what's best for sleep.
 
-CURRENT CONDITIONS:
-- Room: {context.get('room_temp', 'unknown')}°C, {context.get('room_humidity', 'unknown')}% humidity
-- Outside: {context.get('outside_temp', 'unknown')}°C (feels like {context.get('outside_feels_like', 'unknown')}°C)
+DATA:
+- Room sensor: {context.get('room_temp', 'unknown')}°C, {context.get('room_humidity', 'unknown')}% humidity
+- Outside: {context.get('outside_temp', 'unknown')}°C
 - Weather: {context.get('weather_desc', 'unknown')}
+- Season: {season} (month: {current_month})
 - Time: {context.get('current_time', 'unknown')}
+- Location: Israel
 
-AC STATUS:
+AC:
 - Power: {context.get('ac_power', 'unknown')}
-- Temperature: {context.get('ac_temp', 'unknown')}°C
-- Mode: {context.get('ac_mode', 'unknown')}
+- Set to: {context.get('ac_temp', 'unknown')}°C, mode: {context.get('ac_mode', 'unknown')}
 
-SLEEP SCIENCE (user sleeps with פוך/duvet):
-- OPTIMAL TARGET: {optimal_min}-{optimal_max}°C (research shows 18°C is ideal for deep sleep)
-- Room is currently {context.get('room_temp', 'unknown')}°C
+USER:
+- Sleeps with thick blanket (פוך)
+- Wakes ~06:30
 
-CRITICAL TEMPERATURE CHECK:
-- Current room: {context.get('room_temp', 'unknown')}°C
-- Optimal max: {optimal_max}°C
-- Is room > {optimal_max}°C? If YES → MUST turn on cooling!
-
-DECISION LOGIC (follow strictly):
-1. Room > {optimal_max}°C (like now if room is {context.get('room_temp', 'unknown')}°C) → action="turn_on", mode="cool", temperature=18
-2. Room {optimal_min}-{optimal_max}°C → action="none" (already at target)
-3. Room < {optimal_min}°C → action="turn_on", mode="heat"
-4. If AC is ON and room is within {optimal_min}-{optimal_max}°C → action="turn_off"
+ROOM LAYOUT:
+{room_layout}
 
 {ai_notes}
 

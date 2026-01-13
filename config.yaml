@@ -1,6 +1,17 @@
 # Air Condition Automation Config
 # ================================
 
+room:
+  layout: |
+    SENSOR PLACEMENT: On desk with electronics (screens, laptop) - reads 2-3°C HIGHER than actual bed area
+    AC POSITION: Directly above bed - cold air blows on user when cooling
+    WINDOW: Same wall as AC - lets cold in during winter
+
+    WHAT THIS MEANS:
+    - If sensor shows 20°C, user actually feels ~17-18°C at bed
+    - Running AC cooling makes user VERY COLD (direct airflow + already cold)
+    - In winter with outside <15°C, AC cooling is almost never needed
+
 location:
   city: Modiin
   lat: 31.8928
@@ -28,15 +39,5 @@ rules:
 # AI decision making
 ai:
   notes: |
-    USER SLEEP STYLE:
-    - I sleep WITH a פוך (duvet/blanket)
-    - Studies show 18°C is ideal for deep sleep with blanket
-    - Target room temp: 18-20°C
-    - I wake up around 06:30
-
-    AGGRESSIVE COOLING RULES:
-    - If room > 20°C: ACTIVELY COOL to reach 18-20°C optimal range!
-    - If room 18-20°C: Perfect, no action needed
-    - If room < 18°C: Too cold, need heating
-
-    IMPORTANT: Don't wait until room is >24°C to cool. Start cooling when above 20°C!
+    Just use common sense. No strict rules.
+    I trust your judgment based on the data provided.
