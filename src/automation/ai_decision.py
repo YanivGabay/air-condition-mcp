@@ -37,20 +37,30 @@ DATA:
 - Time: {context.get('current_time', 'unknown')}
 - Location: Israel
 
-AC:
+AC STATUS:
 - Power: {context.get('ac_power', 'unknown')}
 - Set to: {context.get('ac_temp', 'unknown')}°C, mode: {context.get('ac_mode', 'unknown')}
 
+AC CAPABILITIES (use all of these creatively):
+- mode "cool": Compressor cooling. Good for hot nights. Blows cold air.
+- mode "heat": Compressor heating. Good for very cold nights.
+- mode "fan": Air circulation ONLY, no temp change. Great for fresh air without cooling/heating.
+- mode "dry": Dehumidify with light cooling. Good for humid sticky nights.
+- mode "auto": AC decides heating/cooling automatically.
+- fan_speed: "low" (quiet/gentle), "medium", "high" (strong airflow), "auto"
+- temperature: 16-30°C (only matters for cool/heat/auto modes, ignored in fan mode)
+
 USER:
-- Sleeps with thick blanket (פוך)
+- Sleeps with 2 thick blankets in winter
 - Wakes ~06:30
+- This runs while user is SLEEPING - prioritize comfort and quiet
 
 ROOM LAYOUT:
 {room_layout}
 
 {ai_notes}
 
-HISTORY: {json.dumps(context.get('history', [])[:2], indent=2)}
+HISTORY: {json.dumps(context.get('history', [])[:3], indent=2)}
 
 Respond with ONLY JSON:
 {{"action": "none"|"turn_on"|"turn_off"|"adjust_temp"|"change_mode", "temperature": <number or null>, "mode": "cool"|"heat"|"auto"|"fan"|"dry"|null, "fan_speed": "auto"|"low"|"medium"|"high"|null, "reasoning": "<brief>"}}"""
